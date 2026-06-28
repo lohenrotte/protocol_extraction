@@ -109,7 +109,9 @@ def _cluster_edges(values: list[float], tol: float = 2.0) -> list[float]:
  
  
 def _index_of(edge: float, edges: list[float], tol: float = 2.0) -> int:
-    """Find which canonical edge index a coordinate corresponds to."""
+    """
+    Find which canonical edge index a coordinate corresponds to.
+    """
     for i, e in enumerate(edges):
         if abs(edge - e) <= tol:
             return i
@@ -118,6 +120,10 @@ def _index_of(edge: float, edges: list[float], tol: float = 2.0) -> int:
  
 
 def _process_table(page, table, page_num: int, edge_tol: float) -> dict :
+    """
+    Process a detected PDF table into a structured grid.
+    """
+
     cells = table.cells  # list of (x0, top, x1, bottom) bboxes
     if not cells:
         return None
@@ -174,6 +180,10 @@ def extract_tables_from_pdf(
     """
 
     found_tables = []
+    table_settings = {
+        "vertical_strategy": "lines",
+        "horizontal_strategy": "lines"
+    }
  
     with pdfplumber.open(pdf_path) as pdf:
         total_pages = len(pdf.pages)
@@ -181,7 +191,7 @@ def extract_tables_from_pdf(
  
         for page_num in target_pages:
             page = pdf.pages[page_num - 1]
-            tables = page.find_tables()
+            tables = page.find_tables(table_settings)
  
             for table in tables:
                 table_dict = _process_table(page, table, page_num, edge_tol)
@@ -221,6 +231,10 @@ def merge_continued_tables(found_tables: list[dict]) -> list[dict]:
 
 
 def extract_table_toc(pdf_path: str):
+    """
+    Extract table entries from a PDF document table of contents.
+    """
+
     doc = fitz.open(pdf_path)
     toc = doc.get_toc()
     doc.close()
@@ -266,11 +280,12 @@ def attach_tables_to_sections(section_dict: dict, tables: list[dict]) -> dict:
 
     for table in tables:
         first_page = table["pages"][0]
+        end_page = table["pages"][-1]
 
         for i, data in enumerate(sections):
             start, end = data["pages"]
 
-            if start <= first_page <= end:
+            if start <= first_page <= end and start <= end_page <= end:
 
                 # boundary rule: shift to next section if table is on end page
                 if first_page == end and i + 1 < len(sections):

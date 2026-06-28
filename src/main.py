@@ -1,7 +1,10 @@
 import json
 import os
-import pdf_extractor
 import pandas as pd
+
+import llm_client
+import pdf_extractor
+import extract_agent
 
 pdf_path = "input/protocol_covid_19_AstraZeneca.pdf"
 
@@ -31,3 +34,19 @@ if not os.path.exists("output/sections.json"):
 else:
     with open("output/sections.json", "r", encoding="utf-8") as f:
         section_dict = json.load(f)
+
+
+grid = section_dict["1.3 Schedule of Activities"]["tables"][1]["grid"]
+result = extract_agent.extract_schedule_of_activities(grid)["data"]
+with open("output/schedule_of_activities.json", "w", encoding="utf-8") as f:
+    json.dump(result, f, indent=4, ensure_ascii=False)
+
+grid = section_dict["3 OBJECTIVES AND ENDPOINTS"]["tables"][0]["grid"]
+result = extract_agent.extract_objectives_endpoints(grid)["data"]
+with open("output/objectives_endpoints.json", "w", encoding="utf-8") as f:
+    json.dump(result, f, indent=4, ensure_ascii=False)
+
+text = section_dict["5.1 Inclusion Criteria"]["text"] + "\n\n" + section_dict["5.2 Exclusion Criteria"]["text"]
+result = extract_agent.extract_criteria(text)["data"]
+with open("output/inclusion_exclusion_criteria.json", "w", encoding="utf-8") as f:
+    json.dump(result, f, indent=4, ensure_ascii=False)
