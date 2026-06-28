@@ -31,5 +31,3 @@ if not os.path.exists("output/sections.json"):
 else:
     with open("output/sections.json", "r", encoding="utf-8") as f:
         section_dict = json.load(f)
-
-section_list = list(section_dict.keys())

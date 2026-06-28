@@ -254,20 +254,30 @@ def attach_table_titles(tables: list[dict], table_toc: list[dict]) -> list[dict]
 def attach_tables_to_sections(section_dict: dict, tables: list[dict]) -> dict:
     """
     Attach extracted tables to their corresponding section based on page ranges.
+    Heuristic:
+    - A table is assigned to the section whose page range contains its first page.
+    - If the table's first page is exactly equal to the end page of a section,
+      it is assigned to the next section instead (boundary bias forward).
     """
     for data in section_dict.values():
         data["tables"] = []
 
+    sections = list(section_dict.values())
+
     for table in tables:
+        first_page = table["pages"][0]
 
-        table_pages = table["pages"]
-        first_page = table_pages[0]
-
-        for data in section_dict.values():
+        for i, data in enumerate(sections):
             start, end = data["pages"]
 
             if start <= first_page <= end:
-                data["tables"].append(table)
+
+                # boundary rule: shift to next section if table is on end page
+                if first_page == end and i + 1 < len(sections):
+                    sections[i + 1]["tables"].append(table)
+                else:
+                    data["tables"].append(table)
+
                 break
 
     return section_dict
