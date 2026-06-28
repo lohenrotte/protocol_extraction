@@ -1,9 +1,11 @@
 import json
 import os
 import pdf_extractor
+import pandas as pd
+
+pdf_path = "input/protocol_covid_19_AstraZeneca.pdf"
 
 if not os.path.exists("output/sections.json"):
-    pdf_path = "input/protocol_covid_19_AstraZeneca.pdf"
 
     section_dict = pdf_extractor.build_section_ranges(pdf_path)
 
@@ -29,3 +31,5 @@ if not os.path.exists("output/sections.json"):
 else:
     with open("output/sections.json", "r", encoding="utf-8") as f:
         section_dict = json.load(f)
+
+section_list = list(section_dict.keys())
